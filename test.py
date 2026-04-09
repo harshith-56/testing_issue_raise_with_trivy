@@ -1,1 +1,1 @@
-key = "sk-abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ123456"
+key = "AKIAIOSFODNN7EXAMPLE"
