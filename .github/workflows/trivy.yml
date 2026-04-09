@@ -16,7 +16,8 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Run Trivy scan
+
+      - name: Run Trivy scan (JSON)
         uses: aquasecurity/trivy-action@v0.35.0
         with:
           scan-type: fs
@@ -25,6 +26,17 @@ jobs:
           output: trivy-results.json
           severity: HIGH,CRITICAL
 
+
+      - name: Run Trivy scan (table output)
+        uses: aquasecurity/trivy-action@v0.35.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          format: table
+          severity: HIGH,CRITICAL
+          exit-code: 0   
+
+      
       - name: Create Issues
         run: python create_issues.py
         env:
