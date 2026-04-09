@@ -24,29 +24,59 @@ with open("trivy-results.json") as f:
     data = json.load(f)
 
 existing_titles = get_existing_titles()
-seen = set()
+
+seen_vulns = set()
+seen_secrets = set()
 
 for result in data.get("Results", []):
+
+    # -----------------------------
+    # VULNERABILITIES
+    # -----------------------------
     for vuln in result.get("Vulnerabilities", []):
 
         if vuln["Severity"] not in ["HIGH", "CRITICAL"]:
             continue
 
-        pkg = vuln["PkgName"]
-        title_text = vuln.get("Title") or vuln["VulnerabilityID"]
+        pkg = vuln.get("PkgName", "unknown")
+        vuln_id = vuln.get("VulnerabilityID")
+        title_text = vuln.get("Title") or vuln_id
 
         severity = "Critical" if vuln["Severity"] == "CRITICAL" else "High"
 
-        title = f"{pkg}: {title_text}\n{severity}"
+        title = f"[VULN] {pkg}: {title_text}\n{severity}"
 
-        key = (vuln["VulnerabilityID"], pkg)
+        key = (vuln_id, pkg)
 
-        if key in seen:
+        if key in seen_vulns:
             continue
-        seen.add(key)
+        seen_vulns.add(key)
 
         if title in existing_titles:
             continue
 
-        print("Creating issue:", title)
+        print("Creating vulnerability issue:", title)
+        create_issue(title)
+
+    # -----------------------------
+    # SECRETS
+    # -----------------------------
+    for secret in result.get("Secrets", []):
+
+        rule_id = secret.get("RuleID")
+        title_text = secret.get("Title") or rule_id
+        file_path = secret.get("Target")
+
+        title = f"[SECRET] {title_text} ({file_path})"
+
+        key = (rule_id, file_path)
+
+        if key in seen_secrets:
+            continue
+        seen_secrets.add(key)
+
+        if title in existing_titles:
+            continue
+
+        print("Creating secret issue:", title)
         create_issue(title)
